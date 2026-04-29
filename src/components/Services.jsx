@@ -1,4 +1,5 @@
 import { Car, Sparkles, Sofa } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function Services() {
   return (
@@ -26,12 +27,11 @@ export default function Services() {
             R$ 50,00
           </p>
 
-          <a
-            href="#"
+          <Link to="/login"
             className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition"
           >
             Agendar
-          </a>
+          </Link>
         </div>
 
         {/* Card 2 */}
@@ -46,12 +46,12 @@ export default function Services() {
             R$ 120,00
           </p>
 
-          <a
-            href="#"
+        <Link to="/login"
             className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition"
           >
             Agendar
-          </a>
+          </Link>
+        
         </div>
 
         {/* Card 3 */}
@@ -66,12 +66,12 @@ export default function Services() {
             R$ 70,00
           </p>
 
-          <a
-            href="#"
+          <Link to="/login"
             className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition"
           >
             Agendar
-          </a>
+          </Link>
+        
         </div>
 
       </div>

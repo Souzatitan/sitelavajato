@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 export default function Hero() {
   return (
     <section
@@ -18,12 +20,10 @@ export default function Hero() {
 
           <div className="flex flex-col md:flex-row gap-4 justify-center">
             
-            <a
-              href="#"
-              className="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg font-semibold transition"
-            >
+            <Link to="/login"
+            className="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg font-semibold transition">
               Agendar lavagem
-            </a>
+            </Link>
 
             <a
               href="#"

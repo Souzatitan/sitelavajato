@@ -1,25 +1,21 @@
-import Header from "./components/Header";
-import Hero from "./components/Hero";
-import Services from "./components/Services";
-import BeforeAfter from "./components/BeforeAfter";
-import Testimonials from "./components/Testimonials";
-import Footer from "./components/Footer";
+import { Routes, Route } from "react-router-dom";
 
+import Home from "./pages/Home"; // você pode transformar seu App atual em Home
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Dashboard from "./pages/Dashboard";
+import Admin from "./pages/Admin";
 
-function App() {
+const user = JSON.parse(localStorage.getItem("user"));
+
+export default function App() {
   return (
-    <div>
-      <Header />
-       <Hero />
-       <Services />
-       <BeforeAfter />
-       <Testimonials />
-       <Footer />
-      
-     
-    </div>
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/cadastro" element={<Register />} />
+      <Route path="/dashboard" element={user?.tipo === "cliente" ? <Dashboard /> : <Login />}/>
+      <Route path="/admin" element={user?.tipo === "admin" ? <Admin /> : <Login />}/>
+    </Routes>
   );
 }
-
-export default App;
-
