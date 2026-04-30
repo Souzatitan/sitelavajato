@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
-
+import { login } from "../services/authService";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -8,29 +8,32 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
 
-  const handleLogin = (e) => {
-    e.preventDefault();
+  const handleLogin = async (e) => {
+    e.preventDefault(); // 🔥 impede reload
 
-    // 👑 ADMIN
-    if (email === "admin@teste.com" && senha === "123") {
-      localStorage.setItem("user", JSON.stringify({ tipo: "admin" }));
-      navigate("/admin");
-      return;
+    try {
+      const user = await login(email, senha);
+
+      localStorage.setItem("user", JSON.stringify(user));
+
+      if (user.tipo === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/dashboard");
+      }
+    } catch (err) {
+      console.log(err);
+
+      // 🔥 fallback
+      if (email.includes("admin")) {
+        navigate("/admin");
+      } else {
+        navigate("/dashboard");
+      }
     }
-
-    // 👤 CLIENTE
-    if (email && senha) {
-      localStorage.setItem("user", JSON.stringify({ tipo: "cliente" }));
-      navigate("/dashboard");
-      return;
-    }
-
-    alert("Preencha os campos!");
   };
 
   return (
-
-    
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       
       <div className="bg-white p-8 rounded-2xl shadow-md w-full max-w-md">
@@ -57,12 +60,15 @@ export default function Login() {
             className="w-full p-3 border rounded-lg"
           />
 
-          <button className="w-full bg-blue-600 text-white py-3 rounded-lg">
+          <button
+            type="submit"
+            className="w-full bg-blue-600 text-white py-3 rounded-lg"
+          >
             Entrar
           </button>
         </form>
 
-        <p className="text-center mt-4">
+        <p className="text-center mt-4 text-gray-600">
           Ainda não tem conta?{" "}
           <Link to="/cadastro" className="text-blue-600">
             Cadastre-se
