@@ -1,8 +1,8 @@
+// src/services/api.js
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:3000", // 
+  baseURL: "http://localhost:8000/api", // 🔥 IMPORTANTE
 });
 
-const USE_MOCK = true; // 🔥 muda pra false quando tiver backend
 export default api;

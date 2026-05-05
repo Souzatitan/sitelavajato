@@ -1,23 +1,21 @@
-import api from "./api";
+import axios from "axios";
 
-const USE_MOCK = true;
+const API = "http://localhost:8000/api";
 
-export const login = async (email, senha) => {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      if (!email || !senha) {
-        reject("Campos obrigatórios");
-      }
-
-      if (email.includes("admin")) {
-        resolve({ email, tipo: "admin" });
-      } else {
-        resolve({ email, tipo: "cliente" });
-      }
-    }, 500);
+// login cliente
+export const loginCliente = async (email, senha) => {
+  const res = await axios.post(`${API}/clientes/login`, {
+    email,
+    senha,
   });
+  return res.data;
+};
 
-  // 🔥 QUANDO TIVER BACK
-  const response = await api.post("/login", { email, senha });
-  return response.data;
+// login admin
+export const loginAdmin = async (email, senha) => {
+  const res = await axios.post(`${API}/admin/login`, {
+    email,
+    senha,
+  });
+  return res.data;
 };

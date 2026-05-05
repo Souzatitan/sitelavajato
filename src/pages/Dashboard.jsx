@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import HeaderInterno from "../components/HeaderInterno";
 
-import { getAgenda } from "../services/agendaService";
 import {
   getAgendamentos,
   criarAgendamento,
-  excluirAgendamento,
+  cancelarAgendamento
 } from "../services/agendamentoService";
+
+import { getAgenda } from "../services/agendaService";
 
 export default function Dashboard() {
   const [dataSelecionada, setDataSelecionada] = useState("");
@@ -18,26 +19,26 @@ export default function Dashboard() {
   ]);
 
   // 🔄 carregar dados
+  const carregarDados = async () => {
+    try {
+      const agendaAPI = await getAgenda();
+      const agendamentosAPI = await getAgendamentos();
+
+      setAgenda(agendaAPI);
+      setAgendamentos(agendamentosAPI);
+    } catch {
+      console.log("API falhou, usando localStorage");
+
+      const agendaLocal = JSON.parse(localStorage.getItem("agenda") || "[]");
+      const agendamentosLocal = JSON.parse(localStorage.getItem("agendamentos") || "[]");
+
+      setAgenda(agendaLocal);
+      setAgendamentos(agendamentosLocal);
+    }
+  };
+
   useEffect(() => {
-    const carregar = async () => {
-      try {
-        const agendaAPI = await getAgenda();
-        const agendamentosAPI = await getAgendamentos();
-
-        setAgenda(agendaAPI);
-        setAgendamentos(agendamentosAPI);
-      } catch (err) {
-        console.log("API falhou, usando localStorage");
-
-        const agendaLocal = JSON.parse(localStorage.getItem("agenda") || "[]");
-        const agendamentosLocal = JSON.parse(localStorage.getItem("agendamentos") || "[]");
-
-        setAgenda(agendaLocal);
-        setAgendamentos(agendamentosLocal);
-      }
-    };
-
-    carregar();
+    carregarDados();
   }, []);
 
   // 🔍 horários disponíveis
@@ -51,7 +52,7 @@ export default function Dashboard() {
     );
   };
 
-  // ✅ AGENDAR (API)
+  // ✅ AGENDAR
   const agendar = async (hora) => {
     if (!dataSelecionada) {
       alert("Escolha uma data!");
@@ -67,39 +68,27 @@ export default function Dashboard() {
       data: dataSelecionada,
       hora,
       servico: "Lavagem Completa",
-      status: "pendente",
     };
 
     try {
       await criarAgendamento(novo);
-
-      const atualizados = await getAgendamentos();
-      setAgendamentos(atualizados);
-
-      alert("Agendamento feito!");
-    } catch (err) {
-      console.log("API falhou, usando local");
-
+      await carregarDados();
+      alert("Agendamento realizado!");
+    } catch {
       const novos = [novo, ...agendamentos];
       setAgendamentos(novos);
-
       localStorage.setItem("agendamentos", JSON.stringify(novos));
     }
   };
 
-  // ❌ cancelar (API)
+  // ❌ CANCELAR (CORRIGIDO)
   const cancelar = async (id, index) => {
     try {
-      await excluirAgendamento(id);
-
-      const atualizados = await getAgendamentos();
-      setAgendamentos(atualizados);
-    } catch (err) {
-      console.log("API falhou, removendo local");
-
+      await cancelarAgendamento(id);
+      await carregarDados();
+    } catch {
       const novos = agendamentos.filter((_, i) => i !== index);
       setAgendamentos(novos);
-
       localStorage.setItem("agendamentos", JSON.stringify(novos));
     }
   };
@@ -112,42 +101,32 @@ export default function Dashboard() {
         Área do Cliente
       </h1>
 
-      {/* DATA */}
-      <div className="mb-6">
-        <label className="block mb-2 font-semibold">
-          Escolha a data:
-        </label>
+      {/* 📅 DATA */}
+      <input
+        type="date"
+        value={dataSelecionada}
+        onChange={(e) => setDataSelecionada(e.target.value)}
+        className="p-3 border rounded-lg mb-6"
+      />
 
-        <input
-          type="date"
-          value={dataSelecionada}
-          onChange={(e) => setDataSelecionada(e.target.value)}
-          className="p-3 border rounded-lg"
-        />
-      </div>
-
-      {/* HORÁRIOS */}
+      {/* ⏰ HORÁRIOS */}
       <div className="mb-10">
         <h2 className="text-xl font-semibold mb-4">
           Horários disponíveis
         </h2>
 
         {!dataSelecionada ? (
-          <p className="text-gray-500">
-            Escolha uma data primeiro.
-          </p>
+          <p className="text-gray-500">Escolha uma data primeiro.</p>
         ) : horariosDisponiveis.length === 0 ? (
-          <p className="text-gray-500">
-            Nenhum horário disponível nessa data.
-          </p>
+          <p className="text-gray-500">Nenhum horário disponível.</p>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {horariosDisponiveis.map((hora, index) => {
+            {horariosDisponiveis.map((hora) => {
               const ocupado = horarioOcupado(hora);
 
               return (
                 <button
-                  key={index}
+                  key={hora}
                   onClick={() => agendar(hora)}
                   disabled={ocupado}
                   className={`p-4 rounded-xl shadow transition
@@ -165,7 +144,7 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* AGENDAMENTOS */}
+      {/* 📋 AGENDAMENTOS */}
       <div className="mb-10">
         <h2 className="text-xl font-semibold mb-4">
           Meus agendamentos
@@ -173,25 +152,26 @@ export default function Dashboard() {
 
         <div className="bg-white rounded-xl shadow divide-y">
           {agendamentos.length === 0 ? (
-            <p className="p-4 text-gray-500">
-              Nenhum agendamento ainda.
-            </p>
+            <p className="p-4 text-gray-500">Nenhum agendamento.</p>
           ) : (
             agendamentos.map((item, index) => (
               <div
-                key={index}
+                key={item.id || index}
                 className="p-4 flex justify-between items-center"
               >
                 <span>
                   {item.data} - {item.hora}
+
                   <span
                     className={`ml-2 px-2 py-1 rounded text-sm ${
                       item.status === "confirmado"
                         ? "bg-green-100 text-green-700"
+                        : item.status === "cancelado"
+                        ? "bg-red-100 text-red-700"
                         : "bg-yellow-100 text-yellow-700"
                     }`}
                   >
-                    {item.status}
+                    {item.status || "pendente"}
                   </span>
                 </span>
 
@@ -207,7 +187,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* HISTÓRICO */}
+      {/* 📜 HISTÓRICO */}
       <div>
         <h2 className="text-xl font-semibold mb-4">
           Histórico de serviços

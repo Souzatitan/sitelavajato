@@ -7,29 +7,44 @@ export default function Login() {
 
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e) => {
-    e.preventDefault(); // 🔥 impede reload
+    e.preventDefault();
+
+    if (!email || !senha) {
+      alert("Preencha todos os campos!");
+      return;
+    }
 
     try {
+      setLoading(true);
+
       const user = await login(email, senha);
 
+      // 💾 salva usuário
       localStorage.setItem("user", JSON.stringify(user));
 
+      // 🔐 redireciona baseado no tipo
       if (user.tipo === "admin") {
         navigate("/admin");
       } else {
         navigate("/dashboard");
       }
-    } catch (err) {
-      console.log(err);
 
-      // 🔥 fallback
+    } catch (err) {
+      console.error(err);
+
+      // ⚠️ fallback TEMPORÁRIO (remover depois com backend pronto)
+      alert("Erro no login — usando modo teste");
+
       if (email.includes("admin")) {
         navigate("/admin");
       } else {
         navigate("/dashboard");
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -62,15 +77,16 @@ export default function Login() {
 
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-3 rounded-lg"
+            disabled={loading}
+            className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition"
           >
-            Entrar
+            {loading ? "Entrando..." : "Entrar"}
           </button>
         </form>
 
         <p className="text-center mt-4 text-gray-600">
           Ainda não tem conta?{" "}
-          <Link to="/cadastro" className="text-blue-600">
+          <Link to="/cadastro" className="text-blue-600 hover:underline">
             Cadastre-se
           </Link>
         </p>

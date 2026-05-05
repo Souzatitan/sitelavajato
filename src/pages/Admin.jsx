@@ -1,9 +1,12 @@
 import { useState, useEffect } from "react";
 import HeaderInterno from "../components/HeaderInterno";
 import { criarAgenda, getAgenda } from "../services/agendaService";
+
 import {
   getAgendamentos,
-  excluirAgendamento,
+  confirmarAgendamento,
+  cancelarAgendamento,
+  excluirAgendamento
 } from "../services/agendamentoService";
 
 export default function Admin() {
@@ -15,26 +18,26 @@ export default function Admin() {
   const [agendamentos, setAgendamentos] = useState([]);
 
   // 🔄 carregar dados
+  const carregarDados = async () => {
+    try {
+      const agendaAPI = await getAgenda();
+      const agendamentosAPI = await getAgendamentos();
+
+      setAgenda(agendaAPI);
+      setAgendamentos(agendamentosAPI);
+    } catch (err) {
+      console.log("API falhou, usando localStorage");
+
+      const agendaLocal = JSON.parse(localStorage.getItem("agenda") || "[]");
+      const agendamentosLocal = JSON.parse(localStorage.getItem("agendamentos") || "[]");
+
+      setAgenda(agendaLocal);
+      setAgendamentos(agendamentosLocal);
+    }
+  };
+
   useEffect(() => {
-    const carregar = async () => {
-      try {
-        const agendaAPI = await getAgenda();
-        const agendamentosAPI = await getAgendamentos();
-
-        setAgenda(agendaAPI);
-        setAgendamentos(agendamentosAPI);
-      } catch (err) {
-        console.log("API falhou, usando localStorage");
-
-        const agendaLocal = JSON.parse(localStorage.getItem("agenda") || "[]");
-        const agendamentosLocal = JSON.parse(localStorage.getItem("agendamentos") || "[]");
-
-        setAgenda(agendaLocal);
-        setAgendamentos(agendamentosLocal);
-      }
-    };
-
-    carregar();
+    carregarDados();
   }, []);
 
   // ➕ adicionar horário
@@ -55,7 +58,7 @@ export default function Admin() {
     setHorarios(horarios.filter((_, i) => i !== index));
   };
 
-  // ⚡ gerar horários automáticos
+  // ⚡ gerar horários
   const gerarHorarios = () => {
     const lista = [];
     for (let i = 9; i <= 18; i++) {
@@ -73,14 +76,9 @@ export default function Admin() {
 
     try {
       await criarAgenda(dataSelecionada, horarios);
-
-      const atualizada = await getAgenda();
-      setAgenda(atualizada);
-
+      await carregarDados();
       alert("Agenda salva!");
-    } catch (err) {
-      console.log("API falhou, salvando local");
-
+    } catch {
       const nova = { data: dataSelecionada, horarios };
 
       const filtrado = agenda.filter((a) => a.data !== dataSelecionada);
@@ -101,25 +99,33 @@ export default function Admin() {
     localStorage.setItem("agenda", JSON.stringify(nova));
   };
 
-  // ✅ confirmar agendamento
-  const confirmar = (index) => {
-    const novos = [...agendamentos];
-    novos[index].status = "confirmado";
-
-    setAgendamentos(novos);
-    localStorage.setItem("agendamentos", JSON.stringify(novos));
+  // ✅ CONFIRMAR (AGORA COM API)
+  const confirmar = async (id) => {
+    try {
+      await confirmarAgendamento(id);
+      await carregarDados();
+    } catch {
+      alert("Erro ao confirmar");
+    }
   };
 
-  // ❌ excluir agendamento
+  // ❌ CANCELAR
+  const cancelar = async (id) => {
+    try {
+      await cancelarAgendamento(id);
+      await carregarDados();
+    } catch {
+      alert("Erro ao cancelar");
+    }
+  };
+
+  // 🗑 EXCLUIR
   const excluir = async (id, index) => {
     try {
       await excluirAgendamento(id);
-
-      const atualizados = await getAgendamentos();
-      setAgendamentos(atualizados);
+      await carregarDados();
     } catch {
       const novos = agendamentos.filter((_, i) => i !== index);
-
       setAgendamentos(novos);
       localStorage.setItem("agendamentos", JSON.stringify(novos));
     }
@@ -133,26 +139,16 @@ export default function Admin() {
         Área do Empreendedor
       </h1>
 
-      {/* 📅 DATA */}
-      <div className="mb-6">
-        <label className="block mb-2 font-semibold">
-          Escolha a data:
-        </label>
+      {/* DATA */}
+      <input
+        type="date"
+        value={dataSelecionada}
+        onChange={(e) => setDataSelecionada(e.target.value)}
+        className="p-3 border rounded-lg mb-6"
+      />
 
-        <input
-          type="date"
-          value={dataSelecionada}
-          onChange={(e) => setDataSelecionada(e.target.value)}
-          className="p-3 border rounded-lg"
-        />
-      </div>
-
-      {/* ⏰ HORÁRIOS */}
+      {/* HORÁRIOS */}
       <div className="mb-10">
-        <h2 className="text-xl font-semibold mb-4">
-          Horários disponíveis
-        </h2>
-
         <div className="flex gap-2 mb-4">
           <input
             type="time"
@@ -161,131 +157,68 @@ export default function Admin() {
             className="p-2 border rounded"
           />
 
-          <button
-            onClick={adicionarHorario}
-            className="bg-blue-600 text-white px-4 rounded"
-          >
+          <button onClick={adicionarHorario} className="bg-blue-600 text-white px-4 rounded">
             Adicionar
           </button>
 
-          <button
-            onClick={gerarHorarios}
-            className="bg-gray-700 text-white px-4 rounded"
-          >
+          <button onClick={gerarHorarios} className="bg-gray-700 text-white px-4 rounded">
             9h às 18h
           </button>
         </div>
-
-        <div className="flex flex-wrap gap-3">
-          {horarios.map((hora, index) => (
-            <div key={index} className="flex items-center gap-2">
-              <span className="bg-white px-3 py-2 rounded shadow">
-                {hora}
-              </span>
-
-              <button
-                onClick={() => removerHorario(index)}
-                className="text-red-500"
-              >
-                X
-              </button>
-            </div>
-          ))}
-        </div>
       </div>
 
-      {/* 💾 BOTÃO */}
-      <button
-        onClick={salvarAgenda}
-        className="bg-green-600 text-white px-6 py-3 rounded-lg"
-      >
+      {/* SALVAR */}
+      <button onClick={salvarAgenda} className="bg-green-600 text-white px-6 py-3 rounded-lg">
         Salvar Agenda
       </button>
 
-      {/* 📋 AGENDA */}
+      {/* AGENDAMENTOS */}
       <div className="mt-10">
         <h2 className="text-xl font-semibold mb-4">
-          Agenda cadastrada
+          Agendamentos
         </h2>
 
         <div className="bg-white rounded-xl shadow divide-y">
-          {agenda.length === 0 ? (
-            <p className="p-4 text-gray-500">
-              Nenhuma agenda cadastrada.
-            </p>
-          ) : (
-            agenda.map((item, index) => (
-              <div key={index} className="p-4 flex justify-between">
-                <div>
-                  <p className="font-semibold">{item.data}</p>
-                  <p className="text-gray-500 text-sm">
-                    {item.horarios.join(", ")}
-                  </p>
-                </div>
+          {agendamentos.map((item) => (
+            <div key={item.id} className="p-4 flex justify-between items-center">
+
+              <span>
+                {item.data} - {item.hora}
+
+                <span className="ml-2 px-2 py-1 rounded text-sm bg-yellow-100 text-yellow-700">
+                  {item.status || "pendente"}
+                </span>
+              </span>
+
+              <div className="flex gap-2">
+
+                {item.status !== "confirmado" && (
+                  <button
+                    onClick={() => confirmar(item.id)}
+                    className="text-green-600"
+                  >
+                    Confirmar
+                  </button>
+                )}
 
                 <button
-                  onClick={() => excluirAgenda(index)}
+                  onClick={() => cancelar(item.id)}
+                  className="text-yellow-600"
+                >
+                  Cancelar
+                </button>
+
+                <button
+                  onClick={() => excluir(item.id)}
                   className="text-red-600"
                 >
                   Excluir
                 </button>
+
               </div>
-            ))
-          )}
-        </div>
-      </div>
 
-      {/* 📋 AGENDAMENTOS */}
-      <div className="mt-10">
-        <h2 className="text-xl font-semibold mb-4">
-          Agendamentos dos clientes
-        </h2>
-
-        <div className="bg-white rounded-xl shadow divide-y">
-          {agendamentos.length === 0 ? (
-            <p className="p-4 text-gray-500">
-              Nenhum agendamento.
-            </p>
-          ) : (
-            agendamentos.map((item, index) => (
-              <div
-                key={index}
-                className="p-4 flex justify-between items-center"
-              >
-                <span>
-                  {item.data} - {item.hora}
-
-                  <span
-                    className={`ml-2 px-2 py-1 rounded text-sm ${
-                      item.status === "confirmado"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-yellow-100 text-yellow-700"
-                    }`}
-                  >
-                    {item.status || "pendente"}
-                  </span>
-                </span>
-
-                <div className="flex gap-2">
-                  {(item.status === "pendente" || !item.status) && (
-                    <button
-                      onClick={() => confirmar(index)}
-                      className="text-green-600"
-                    >
-                      Confirmar
-                    </button>
-                  )}
-
-                  <button
-                    onClick={() => excluir(item.id, index)}
-                    className="text-red-600"
-                  >
-                    Excluir
-                  </button>
-                </div>
-              </div>
-            ))
-          )}
+            </div>
+          ))}
         </div>
       </div>
     </div>

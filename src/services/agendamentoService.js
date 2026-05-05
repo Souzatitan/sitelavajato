@@ -1,41 +1,31 @@
-const USE_MOCK = true;
+import api from "./api";
 
+// 📋 listar todos
 export const getAgendamentos = async () => {
-  if (USE_MOCK) {
-    return JSON.parse(localStorage.getItem("agendamentos") || "[]");
-  }
-
-  const response = await api.get("/agendamentos");
-  return response.data;
+  const res = await api.get("/agendamentos");
+  return res.data;
 };
 
+// ➕ criar agendamento
 export const criarAgendamento = async (dados) => {
-  if (USE_MOCK) {
-    const atual = JSON.parse(localStorage.getItem("agendamentos") || "[]");
-
-    const novo = { ...dados, id: Date.now() };
-
-    const lista = [novo, ...atual];
-
-    localStorage.setItem("agendamentos", JSON.stringify(lista));
-
-    return novo;
-  }
-
-  const response = await api.post("/agendamentos", dados);
-  return response.data;
+  const res = await api.post("/agendamentos", dados);
+  return res.data;
 };
 
+// ✅ confirmar (admin)
+export const confirmarAgendamento = async (id) => {
+  const res = await api.patch(`/agendamentos/${id}/status`);
+  return res.data;
+};
+
+// ❌ cancelar
+export const cancelarAgendamento = async (id) => {
+  const res = await api.patch(`/agendamentos/${id}/cancelar`);
+  return res.data;
+};
+
+// 🗑 excluir
 export const excluirAgendamento = async (id) => {
-  if (USE_MOCK) {
-    const atual = JSON.parse(localStorage.getItem("agendamentos") || "[]");
-
-    const nova = atual.filter((item) => item.id !== id);
-
-    localStorage.setItem("agendamentos", JSON.stringify(nova));
-
-    return;
-  }
-
-  await api.delete(`/agendamentos/${id}`);
+  const res = await api.delete(`/agendamentos/${id}`);
+  return res.data;
 };
