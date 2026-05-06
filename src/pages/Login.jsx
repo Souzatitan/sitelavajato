@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { login } from "../services/authService";
+import { loginAdmin, loginCliente } from "../services/authService";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -10,43 +10,44 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!email || !senha) {
-      alert("Preencha todos os campos!");
-      return;
+  if (!email || !senha) {
+    alert("Preencha todos os campos!");
+    return;
+  }
+
+  try {
+    setLoading(true);
+
+    let response;
+
+    if (email.includes("admin")) {
+      response = await loginAdmin(email, senha);
+    } else {
+      response = await loginCliente(email, senha);
     }
 
-    try {
-      setLoading(true);
+    // 🔐 salva token
+    localStorage.setItem("token", response.token);
 
-      const user = await login(email, senha);
+    // 👤 salva usuário (APENAS o usuario)
+    localStorage.setItem("user", JSON.stringify(response.usuario));
 
-      // 💾 salva usuário
-      localStorage.setItem("user", JSON.stringify(user));
-
-      // 🔐 redireciona baseado no tipo
-      if (user.tipo === "admin") {
-        navigate("/admin");
-      } else {
-        navigate("/dashboard");
-      }
-
-    } catch (err) {
-      console.error(err);
-
-      // ⚠️ fallback TEMPORÁRIO (remover depois com backend pronto)
-      alert("Erro no login — usando modo teste");
-
-      if (email.includes("admin")) {
-        navigate("/admin");
-      } else {
-        navigate("/dashboard");
-      }
-    } finally {
-      setLoading(false);
+    // 🚀 redireciona (com reload)
+    if (response.usuario.tipo === "admin") {
+      window.location.href = "/admin";
+    } else {
+      window.location.href = "/dashboard";
     }
-  };
+
+  } catch (err) {
+    console.error(err);
+    alert("Email ou senha inválidos");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">

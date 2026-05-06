@@ -18,7 +18,7 @@ export default function BeforeAfter() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <img
-                src="/antes1.jpg"
+                src="/antes1.png"
                 alt="Antes"
                 className="rounded-xl shadow-md"
               />
@@ -27,7 +27,7 @@ export default function BeforeAfter() {
 
             <div>
               <img
-                src="/depois1.jpg"
+                src="/depois1.png"
                 alt="Depois"
                 className="rounded-xl shadow-md"
               />
@@ -43,7 +43,7 @@ export default function BeforeAfter() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <img
-                src="/antes2.jpg"
+                src="/antes2.png"
                 alt="Antes"
                 className="rounded-xl shadow-md"
               />
@@ -52,7 +52,7 @@ export default function BeforeAfter() {
 
             <div>
               <img
-                src="/depois2.jpg"
+                src="/depois2.png"
                 alt="Depois"
                 className="rounded-xl shadow-md"
               />
