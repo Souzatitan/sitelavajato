@@ -6,7 +6,18 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Admin from "./pages/Admin";
 
-const user = JSON.parse(localStorage.getItem("user") || "null");
+let user = null;
+
+try {
+  const storedUser = localStorage.getItem("user");
+
+  if (storedUser && storedUser !== "undefined") {
+    user = JSON.parse(storedUser);
+  }
+} catch (error) {
+  console.error("Erro ao ler user do localStorage:", error);
+  localStorage.removeItem("user");
+}
 
 export default function App() {
   return (
