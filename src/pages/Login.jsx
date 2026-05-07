@@ -28,7 +28,9 @@ export default function Login() {
   response = await loginCliente(email, senha);
 }
 
-    console.log("RESPOSTA LOGIN:", response);
+    console.log("RESPOSTA LOGIN STRING:", JSON.stringify(response));
+    console.log("RESPOSTA LOGIN OBJ:", response);
+    console.log("TOKEN:", response?.token);
     console.log("USUARIO:", response?.usuario);
 
     // 🔐 salva token
