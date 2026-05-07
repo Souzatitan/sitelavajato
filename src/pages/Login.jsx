@@ -23,10 +23,13 @@ export default function Login() {
     let response;
 
     if (email.includes("admin")) {
-      response = await loginAdmin(email, senha);
-    } else {
-      response = await loginCliente(email, senha);
-    }
+  response = await loginAdmin(email, senha);
+} else {
+  response = await loginCliente(email, senha);
+}
+
+    console.log("RESPOSTA LOGIN:", response);
+    console.log("USUARIO:", response?.usuario);
 
     // 🔐 salva token
     localStorage.setItem("token", response.token);
