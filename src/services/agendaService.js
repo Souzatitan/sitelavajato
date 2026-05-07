@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API = "http://localhost:8000/api";
+const API = "https://sitelavajato-backend.onrender.com";
 
 export const getAgenda = async () => {
   const res = await axios.get(`${API}/horarios`);
