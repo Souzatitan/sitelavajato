@@ -1,23 +1,17 @@
-const salvarAgenda = async () => {
-  if (!dataSelecionada || horarios.length === 0) {
-    alert("Selecione data e horários!");
-    return;
-  }
+import api from "./api";
 
-  try {
-    for (const hora of horarios) {
-      await criarAgenda(dataSelecionada, hora);
-    }
+// 📋 listar horários
+export const getAgenda = async () => {
+  const res = await api.get("/horarios");
+  return res.data;
+};
 
-    await carregarDados();
+// ➕ criar agenda
+export const criarAgenda = async (data, hora) => {
+  const res = await api.post("/horarios", {
+    data,
+    hora,
+  });
 
-    alert("Agenda salva!");
-
-    setDataSelecionada("");
-    setHorarios([]);
-
-  } catch (err) {
-    console.log(err);
-    alert("Erro ao salvar agenda");
-  }
+  return res.data;
 };
