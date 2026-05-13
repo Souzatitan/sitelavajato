@@ -150,6 +150,23 @@ export default function Admin() {
       {/* HORÁRIOS */}
       <div className="mb-10">
         <div className="flex gap-2 mb-4">
+          <div className="flex flex-wrap gap-2 mt-4">
+  {horarios.map((hora, index) => (
+    <div
+      key={index}
+      className="bg-blue-100 px-3 py-2 rounded-lg flex items-center gap-2"
+    >
+      <span>{hora}</span>
+
+      <button
+        onClick={() => removerHorario(index)}
+        className="text-red-600 font-bold"
+      >
+        X
+      </button>
+    </div>
+  ))}
+</div>
           <input
             type="time"
             value={novoHorario}

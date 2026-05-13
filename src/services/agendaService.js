@@ -1,15 +1,23 @@
-import axios from "axios";
+const salvarAgenda = async () => {
+  if (!dataSelecionada || horarios.length === 0) {
+    alert("Selecione data e horários!");
+    return;
+  }
 
-const API = "https://sitelavajato-backend.onrender.com";
+  try {
+    for (const hora of horarios) {
+      await criarAgenda(dataSelecionada, hora);
+    }
 
-export const getAgenda = async () => {
-  const res = await axios.get(`${API}/horarios`);
-  return res.data;
-};
+    await carregarDados();
 
-export const criarAgenda = async (data, horarios) => {
-  return await axios.post(`${API}/horarios`, {
-    data,
-    horarios,
-  });
+    alert("Agenda salva!");
+
+    setDataSelecionada("");
+    setHorarios([]);
+
+  } catch (err) {
+    console.log(err);
+    alert("Erro ao salvar agenda");
+  }
 };
