@@ -23,8 +23,8 @@ export default function Admin() {
       const agendaAPI = await getAgenda();
       const agendamentosAPI = await getAgendamentos();
 
-      setAgenda(agendaAPI);
-      setAgendamentos(agendamentosAPI);
+      setAgenda(agendaAPI.horarios || []);
+      setAgendamentos(agendamentosAPI.agendamentos || []);
     } catch (err) {
       console.log("API falhou, usando localStorage");
 
@@ -69,29 +69,28 @@ export default function Admin() {
 
   // 💾 salvar agenda
   const salvarAgenda = async () => {
-    if (!dataSelecionada || horarios.length === 0) {
-      alert("Selecione data e horários!");
-      return;
+  if (!dataSelecionada || horarios.length === 0) {
+    alert("Selecione data e horários!");
+    return;
+  }
+
+  try {
+    for (const hora of horarios) {
+      await criarAgenda(dataSelecionada, hora);
     }
 
-    try {
-      await criarAgenda(dataSelecionada, horarios);
-      await carregarDados();
-      alert("Agenda salva!");
-    } catch {
-      const nova = { data: dataSelecionada, horarios };
+    await carregarDados();
 
-      const filtrado = agenda.filter((a) => a.data !== dataSelecionada);
-      const novaLista = [...filtrado, nova];
+    alert("Agenda salva!");
 
-      setAgenda(novaLista);
-      localStorage.setItem("agenda", JSON.stringify(novaLista));
-    }
+  } catch (err) {
+    console.log(err);
+    alert("Erro ao salvar agenda");
+  }
 
-    setDataSelecionada("");
-    setHorarios([]);
-  };
-
+  setDataSelecionada("");
+  setHorarios([]);
+};
   // 🗑 excluir agenda
   const excluirAgenda = (index) => {
     const nova = agenda.filter((_, i) => i !== index);
