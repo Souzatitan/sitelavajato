@@ -7,11 +7,15 @@ export const getAgenda = async () => {
 };
 
 // ➕ criar agenda
-export const criarAgenda = async (data, hora) => {
-  const res = await api.post("/horarios", {
-    data,
-    hora,
-  });
+export const criarAgenda = async (data, horarios) => {
 
-  return res.data;
+  for (const hora of horarios) {
+
+    await api.post("/horarios", {
+      data,
+      hora,
+    });
+
+  }
+
 };
